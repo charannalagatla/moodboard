@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getEntries, deleteEntry } from '../api';
 import { EMOTION_COLORS, EMOTION_EMOJI } from '../components/EmotionBars';
 
