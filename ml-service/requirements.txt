@@ -2,6 +2,6 @@ flask==3.0.0
 flask-cors==4.0.0
 transformers==4.46.0
 torch==2.9.0
-tokenizers==0.21.0
+tokenizers==0.20.3
 gunicorn==21.2.0
 python-dotenv==1.0.0
