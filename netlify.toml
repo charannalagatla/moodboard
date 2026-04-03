@@ -4,9 +4,9 @@
   status = 200
 
 [build]
-  base = "frontend"
-  publish = "frontend/build"
+  base    = "frontend"
   command = "npm run build"
+  publish = "build"
 
 [build.environment]
   NODE_VERSION = "18"
