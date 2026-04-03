@@ -11,37 +11,31 @@ router.use(protect);
 // ── Gemini emotion analysis ───────────────────────────────────
 async function analyseEmotion(text) {
   try {
-    const prompt = `You are an expert psychologist analyzing emotions in journal entries. Your job is to detect the TRUE emotional state, not just surface words.
+    const prompt = `Read this journal entry and tell me how the person is feeling emotionally.
 
-      Analyze this journal entry deeply and return ONLY a JSON object with no explanation, no markdown, no backticks:
+Journal entry: "${text.substring(0, 1000)}"
 
-      {
-        "dominant": { "label": "<emotion>", "score": <0.0 to 1.0> },
-        "emotions": [
-          { "label": "joy",      "score": <0.0 to 1.0> },
-          { "label": "sadness",  "score": <0.0 to 1.0> },
-          { "label": "anger",    "score": <0.0 to 1.0> },
-          { "label": "fear",     "score": <0.0 to 1.0> },
-          { "label": "surprise", "score": <0.0 to 1.0> },
-          { "label": "disgust",  "score": <0.0 to 1.0> },
-          { "label": "neutral",  "score": <0.0 to 1.0> }
-        ]
-      }
+Respond ONLY with a JSON object, no explanation, no markdown:
+{
+  "dominant": { "label": "<emotion>", "score": <0.0 to 1.0> },
+  "emotions": [
+    { "label": "joy",      "score": <0.0 to 1.0> },
+    { "label": "sadness",  "score": <0.0 to 1.0> },
+    { "label": "anger",    "score": <0.0 to 1.0> },
+    { "label": "fear",     "score": <0.0 to 1.0> },
+    { "label": "surprise", "score": <0.0 to 1.0> },
+    { "label": "disgust",  "score": <0.0 to 1.0> },
+    { "label": "neutral",  "score": <0.0 to 1.0> }
+  ]
+}
 
-      STRICT RULES:
-      - All 7 scores must sum to exactly 1.0
-      - dominant label must match the highest scoring emotion
-      - NEVER return neutral unless the text is completely factual with zero emotional content
-      - Look for subtle emotions — frustration, excitement, worry, longing all count
-      - Most human writing carries real emotion even if not explicitly stated
-
-      Journal entry: "${text.substring(0, 1000)}"`;
+All scores must sum to 1.0. dominant must be the highest scoring emotion.`;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 300 },
+        generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
       },
       { timeout: 15000 }
     );
