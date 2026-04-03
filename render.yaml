@@ -1,0 +1,39 @@
+services:
+  # ── Express Backend ──────────────────────────────────────────
+  - type: web
+    name: moodboard-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false          # set in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FLASK_ML_URL
+        fromService:
+          type: web
+          name: moodboard-ml
+          property: host
+      - key: FRONTEND_URL
+        sync: false          # set to your Netlify URL
+
+  # ── Flask ML Service ──────────────────────────────────────────
+  - type: web
+    name: moodboard-ml
+    env: python
+    rootDir: ml-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        sync: false          # set to your Express backend URL
