@@ -53,13 +53,16 @@ app.use((err, req, res, next) => {
 // ── DATABASE + SERVER START ───────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGODB_URI)
+console.log('🚀 Starting server...');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
-    app.listen(PORT, () => console.log(`🚀 Express server running on port ${PORT}`));
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
   })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err.message);
+  .catch(err => {
+    console.error('❌ MongoDB connection failed:', err.message);
     process.exit(1);
   });
