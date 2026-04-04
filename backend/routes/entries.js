@@ -9,6 +9,29 @@ const router = express.Router();
 router.use(protect);
 
 // ── Gemini emotion analysis ───────────────────────────────────
+async function callGemini(prompt, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
+        },
+        { timeout: 15000 }
+      );
+      return response;
+    } catch (err) {
+      if (err.response?.status === 429 && i < retries - 1) {
+        console.log(`Rate limited, retrying in ${(i + 1) * 3}s...`);
+        await new Promise(r => setTimeout(r, (i + 1) * 3000));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 async function analyseEmotion(text) {
   try {
     const prompt = `Read this journal entry and tell me how the person is feeling emotionally.
@@ -31,14 +54,7 @@ Respond ONLY with a JSON object, no explanation, no markdown:
 
 All scores must sum to 1.0. dominant must be the highest scoring emotion.`;
 
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
-      },
-      { timeout: 15000 }
-    );
+    const response = await callGemini(prompt);
 
     const raw = response.data.candidates[0].content.parts[0].text.trim();
     const cleaned = raw.replace(/```json|```/g, '').trim();
