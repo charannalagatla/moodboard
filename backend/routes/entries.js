@@ -9,32 +9,18 @@ const router = express.Router();
 router.use(protect);
 
 // ── Gemini emotion analysis ───────────────────────────────────
-async function callGemini(prompt, retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
-        },
-        { timeout: 15000 }
-      );
-      return response;
-    } catch (err) {
-      if (err.response?.status === 429 && i < retries - 1) {
-        console.log(`Rate limited, retrying in ${(i + 1) * 3}s...`);
-        await new Promise(r => setTimeout(r, (i + 1) * 3000));
-      } else {
-        throw err;
-      }
-    }
-  }
-}
-
 async function analyseEmotion(text) {
   try {
-    const prompt = `Read this journal entry and tell me how the person is feeling emotionally.
+    const response = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model: 'llama3-8b-8192',
+        temperature: 0.7,
+        max_tokens: 300,
+        messages: [
+          {
+            role: 'user',
+            content: `Read this journal entry and tell me how the person is feeling emotionally.
 
 Journal entry: "${text.substring(0, 1000)}"
 
@@ -51,17 +37,24 @@ Respond ONLY with a JSON object, no explanation, no markdown:
     { "label": "neutral",  "score": <0.0 to 1.0> }
   ]
 }
+All scores must sum to 1.0. dominant must be the highest scoring emotion.`
+          }
+        ]
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
 
-All scores must sum to 1.0. dominant must be the highest scoring emotion.`;
-
-    const response = await callGemini(prompt);
-
-    const raw = response.data.candidates[0].content.parts[0].text.trim();
+    const raw = response.data.choices[0].message.content.trim();
     const cleaned = raw.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(cleaned);
-    return result;
+    return JSON.parse(cleaned);
   } catch (err) {
-    console.error('Gemini API error:', err.message);
+    console.error('Groq API error:', err.message);
     return null;
   }
 }
