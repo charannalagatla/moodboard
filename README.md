@@ -1,6 +1,9 @@
 # MoodBoard 🌊
 
-A private emotion-journaling app. Write daily entries, detect your mood with AI, and discover emotional patterns over time.
+A full-stack AI-powered mood journaling web app. Write daily entries, detect your emotions with AI, and discover emotional patterns over time.
+
+🔗 **Live Demo:** [moodboard-frontend.netlify.app](https://moodboard-frontend.netlify.app)
+📦 **Repo:** [github.com/charannalagatla/moodboard](https://github.com/charannalagatla/moodboard)
 
 ---
 
@@ -11,10 +14,9 @@ User (React / Netlify)
         │ REST
         ▼
 Express Backend (Node.js / Render)
-   ├──► MongoDB Atlas   — stores users, entries, emotions
-   └──► Flask ML Service (Python / Render)
-              └──► HuggingFace: j-hartmann/emotion-english-distilroberta-base
-                        └──► returns joy / sadness / anger / fear / surprise / disgust / neutral
+   ├──► MongoDB Atlas        — stores users, entries, emotions
+   └──► Groq API (Llama 3)   — real-time 7-class emotion classification
+                └──► returns joy / sadness / anger / fear / surprise / disgust / neutral
 ```
 
 ---
@@ -23,8 +25,8 @@ Express Backend (Node.js / Render)
 
 | # | Feature | Description |
 |---|---------|-------------|
-| 1 | **Write entry** | Rich text area with optional mood tag. Triggers ML on submit. |
-| 2 | **Emotion detect** | 7-emotion classification with confidence scores via HuggingFace. |
+| 1 | **Write entry** | Text area with optional mood tag. Triggers AI emotion detection on submit. |
+| 2 | **Emotion detection** | 7-emotion classification with confidence scores via Groq API (Llama 3). |
 | 3 | **Mood dashboard** | Bar chart (daily moods) + Line chart (confidence trend) + Pie chart (frequency). |
 | 4 | **Insight cards** | Auto-generated tips and pattern detection ("Anxious on Mondays"). |
 | 5 | **Streak tracker** | Days journaled count with milestone badges (3 / 7 / 14 / 21 / 30 / 60 / 100 days). |
@@ -44,11 +46,7 @@ moodboard/
 │   │   └── Entry.js          # emotion schema
 │   └── routes/
 │       ├── auth.js           # register / login / me
-│       └── entries.js        # create, list, dashboard, delete
-│
-├── ml-service/               # Flask ML API
-│   ├── app.py                # HuggingFace emotion pipeline
-│   └── requirements.txt
+│       └── entries.js        # create, list, dashboard, delete + Groq emotion analysis
 │
 ├── frontend/                 # React app
 │   └── src/
@@ -69,7 +67,6 @@ moodboard/
 │           └── History.js     # paginated entry list
 │
 ├── netlify.toml              # Netlify deploy config
-├── render.yaml               # Render deploy config
 └── .gitignore
 ```
 
@@ -79,13 +76,13 @@ moodboard/
 
 ### Prerequisites
 - Node.js 18+
-- Python 3.10+
 - MongoDB Atlas account (free tier works)
+- Groq API key (free at [console.groq.com](https://console.groq.com))
 
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/you/moodboard.git
+git clone https://github.com/charannalagatla/moodboard.git
 cd moodboard
 
 # Backend
@@ -93,30 +90,23 @@ cd backend && npm install
 
 # Frontend
 cd ../frontend && npm install
-
-# ML service
-cd ../ml-service && pip install -r requirements.txt
 ```
 
 ### 2. Configure environment variables
 
 ```bash
-# backend/.env  (copy from .env.example)
+# backend/.env
 MONGODB_URI=mongodb+srv://...
 JWT_SECRET=change_me_to_something_long_and_random
-FLASK_ML_URL=http://localhost:5001
+GROQ_API_KEY=gsk_...
 FRONTEND_URL=http://localhost:3000
-
-# ml-service/.env
-PORT=5001
-FLASK_ENV=development
-ALLOWED_ORIGINS=http://localhost:5000
+NODE_ENV=development
 
 # frontend/.env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5000
 ```
 
-### 3. Run all three services
+### 3. Run both services
 
 **Terminal 1 — Express backend:**
 ```bash
@@ -124,14 +114,7 @@ cd backend && npm run dev
 # → http://localhost:5000
 ```
 
-**Terminal 2 — Flask ML service:**
-```bash
-cd ml-service && python app.py
-# → http://localhost:5001
-# Note: first run downloads the HuggingFace model (~300 MB)
-```
-
-**Terminal 3 — React frontend:**
+**Terminal 2 — React frontend:**
 ```bash
 cd frontend && npm start
 # → http://localhost:3000
@@ -141,23 +124,26 @@ cd frontend && npm start
 
 ## Deployment
 
-### Day 1 — Backend + ML (Render)
+### Backend (Render)
 
 1. Push repo to GitHub.
-2. In Render, click **New → Blueprint** and point to `render.yaml`.
-3. Set secret env vars in the Render dashboard:
-   - `MONGODB_URI` — your MongoDB Atlas connection string
-   - `FRONTEND_URL` — your Netlify URL (set after Day 2)
-   - `ALLOWED_ORIGINS` — your Express backend URL
-4. Deploy. The ML service downloads the model on first boot (~5 min).
+2. In Render, click **New → Web Service** → connect your GitHub repo.
+3. Set **Root directory** → `backend`, **Build command** → `npm install`, **Start command** → `npm start`.
+4. Add environment variables:
+   - `MONGODB_URI` — MongoDB Atlas connection string
+   - `JWT_SECRET` — any long random string
+   - `GROQ_API_KEY` — from console.groq.com
+   - `FRONTEND_URL` — your Netlify URL (update after frontend deploy)
+   - `NODE_ENV` — `production`
+5. Deploy.
 
-### Day 2 — Frontend (Netlify)
+### Frontend (Netlify)
 
 1. In Netlify, click **New site → Import from Git**.
-2. Set **Base directory** → `frontend`, **Build command** → `npm run build`, **Publish directory** → `frontend/build`.
-3. Add env variable: `REACT_APP_API_URL` → your Render Express URL + `/api`.
+2. Set **Base directory** → `frontend`, **Build command** → `npm run build`, **Publish directory** → `build`.
+3. Add environment variable: `REACT_APP_API_URL` → your Render backend URL (no trailing slash).
 4. Deploy.
-5. Update `FRONTEND_URL` in Render with the new Netlify URL.
+5. Update `FRONTEND_URL` in Render with your Netlify URL and redeploy.
 
 ---
 
@@ -168,7 +154,7 @@ cd frontend && npm start
 | POST | `/api/auth/register` | ✗ | Create account |
 | POST | `/api/auth/login` | ✗ | Get JWT token |
 | GET | `/api/auth/me` | ✓ | Get current user |
-| POST | `/api/entries` | ✓ | Create entry + run ML |
+| POST | `/api/entries` | ✓ | Create entry + run AI emotion detection |
 | GET | `/api/entries` | ✓ | List entries (paginated) |
 | GET | `/api/entries/dashboard` | ✓ | Aggregated chart data |
 | GET | `/api/entries/:id` | ✓ | Single entry |
@@ -176,15 +162,14 @@ cd frontend && npm start
 
 ---
 
-## ML Model
+## Emotion Detection
 
-**Model:** `j-hartmann/emotion-english-distilroberta-base`
+**Model:** Groq API with `llama-3.1-8b-instant`
 
-Returns 7 emotions per text:
+Returns 7 emotions per journal entry with confidence scores:
 - `joy` 😊 · `sadness` 😢 · `anger` 😠 · `fear` 😨 · `surprise` 😲 · `disgust` 🤢 · `neutral` 😐
 
-The Express backend calls Flask at `POST /analyse` and stores the full distribution in MongoDB.
-The Flask service is gracefully degraded — if it's unreachable, entries are saved without emotion data.
+The dominant emotion and full score distribution are stored in MongoDB and used for dashboard analytics.
 
 ---
 
@@ -194,7 +179,6 @@ The Flask service is gracefully degraded — if it's unreachable, entries are sa
 |-------|------|
 | Frontend | React 18, React Router 6, Recharts, Axios |
 | Backend | Node.js 18, Express 4, Mongoose, JWT, bcryptjs |
-| ML | Python 3.10, Flask 3, HuggingFace Transformers, PyTorch |
+| AI | Groq API (Llama 3.1 8B) |
 | Database | MongoDB Atlas |
-| Deploy | Netlify (frontend) · Render (backend + ML) |
-| Fonts | Syne + IBM Plex Mono |
+| Deploy | Netlify (frontend) · Render (backend) |
