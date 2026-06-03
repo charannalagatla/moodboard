@@ -27,7 +27,7 @@ const entrySchema = new mongoose.Schema(
       enum: ['happy', 'sad', 'anxious', 'angry', 'calm', 'excited', 'neutral', ''],
       default: '',
     },
-    // ML results from HuggingFace
+    // Mood results from Groq API
     dominantEmotion: { type: String, default: null },
     dominantScore: { type: Number, default: null },
     emotions: [emotionSchema], // all 7 emotion scores

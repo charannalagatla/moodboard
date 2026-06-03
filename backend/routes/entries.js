@@ -8,7 +8,7 @@ const { protect } = require('../middleware/auth');
 const router = express.Router();
 router.use(protect);
 
-// ── Gemini emotion analysis ───────────────────────────────────
+// ── Groq API emotion analysis ───────────────────────────────────
 async function analyseEmotion(text) {
   try {
     const response = await axios.post(
