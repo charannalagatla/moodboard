@@ -175,7 +175,7 @@ export default function History() {
 
         {loading && (
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <div className="spinner" style={{ color: 'var(--indigo-light)', margin: '0 auto' }} />
+            <div className="spinner" style={{ color: 'var(--accent)', margin: '0 auto' }} />
           </div>
         )}
 

@@ -59,19 +59,56 @@ All scores must sum to 1.0. dominant must be the highest scoring emotion.`
   }
 }
 
-// ── Insight generator ─────────────────────────────────────────
-function generateInsight(emotion) {
-  const insights = {
-    joy:      ["You're radiating positive energy today! Capture what's making you happy.", "Great day! Consider sharing your joy with someone you care about."],
-    sadness:  ["It's okay to feel sad. Writing about it is already a brave step.", "Tough moments pass. Be gentle with yourself today."],
-    anger:    ["Anger is valid — it often signals something important needs your attention.", "Try a 5-minute walk to release that tension before revisiting this."],
-    fear:     ["Fear shows you care about something. What's really behind this feeling?", "Name it to tame it — you've already started by writing it down."],
-    surprise: ["Unexpected moments shake things up. How do you feel about it now?", "Life threw you a curveball! Take a breath and assess calmly."],
-    disgust:  ["Your values are signalling something feels wrong. Trust that intuition.", "Setting boundaries around what doesn't sit right is self-care."],
-    neutral:  ["A calm mind is a clear mind. Great time for planning or reflection.", "Steady days have value. Consistency builds streaks!"],
-  };
-  const pool = insights[emotion] || insights['neutral'];
-  return pool[Math.floor(Math.random() * pool.length)];
+// ── AI Insight generator (replaces hardcoded strings) ────────
+async function generateInsight(text, emotion) {
+  try {
+    const response = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.85,
+        max_tokens: 120,
+        messages: [
+          {
+            role: 'system',
+            content: `You are a friendly journal companion talking to a college student.
+Respond in simple, everyday English — like a friend texting back.
+Maximum 2 sentences. Short words only. No formal language.
+Be warm and genuine. No bullet points, no lists.
+Never start with "I" or "It sounds like".`,
+          },
+          {
+            role: 'user',
+            content: `Journal entry: "${text.substring(0, 800)}"
+Detected emotion: ${emotion}
+Write a short personal response to this person.`,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
+      }
+    );
+
+    return response.data.choices[0].message.content.trim();
+  } catch (err) {
+    console.error('Groq insight error:', err.message);
+    // Fallback to simple hardcoded insight if API fails
+    const fallback = {
+      joy:      "That joy you're feeling? Hold onto it.",
+      sadness:  "It takes courage to sit with these feelings. Be gentle with yourself.",
+      anger:    "Your feelings are valid. Take a breath before deciding what to do next.",
+      fear:     "You named it by writing it down. That's already brave.",
+      surprise: "Life loves catching us off guard. Take a moment to process.",
+      disgust:  "Trusting your instincts about what feels wrong is a form of self-respect.",
+      neutral:  "Steady days build the foundation for everything else.",
+    };
+    return fallback[emotion] || fallback['neutral'];
+  }
 }
 
 // ── POST /api/entries ─────────────────────────────────────────
@@ -96,7 +133,8 @@ router.post('/',
         dominantEmotion = mlResult.dominant.label;
         dominantScore   = mlResult.dominant.score;
         emotions        = mlResult.emotions;
-        insight         = generateInsight(dominantEmotion);
+        // Run insight generation in parallel with nothing — or await directly
+        insight = await generateInsight(text, dominantEmotion);
       }
 
       const entry = await Entry.create({ user: req.user._id, text, moodTag, dominantEmotion, dominantScore, emotions, insight, entryDate: today });
