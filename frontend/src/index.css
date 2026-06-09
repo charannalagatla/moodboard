@@ -92,7 +92,6 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Subtle paper texture overlay */
 body::before {
   content: '';
   position: fixed;
@@ -302,33 +301,46 @@ textarea {
 
 .navbar-logo span { color: var(--accent); }
 
-.navbar-nav { display: flex; align-items: center; gap: 4px; }
-
-/* Dark/light toggle */
-.theme-toggle {
+.navbar-nav {
   display: flex;
   align-items: center;
-  background: var(--bg2);
+  gap: 4px;
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+  background: none;
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 3px;
-  gap: 2px;
-  margin-right: 8px;
-}
-
-.theme-btn {
-  padding: 5px 12px;
-  border-radius: 16px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  border-radius: 8px;
   cursor: pointer;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  transition: all 0.15s;
-  letter-spacing: 0.03em;
+  padding: 6px 10px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+  margin-right: 4px;
 }
 
+.theme-toggle-btn:hover {
+  background: var(--bg2);
+  border-color: var(--border-warm);
+}
+
+/* Desktop — show inside navbar-nav, hide outside */
+.mobile-theme { display: none; }
+.desktop-theme { display: inline-flex; }
+.navbar-right { display: none; }
+
+/* Mobile — show outside navbar-nav, hide inside */
+@media (max-width: 768px) {
+  .mobile-theme { display: inline-flex; }
+  .desktop-theme { display: none; }
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
 .theme-btn.active {
   background: var(--surface);
   color: var(--text);
@@ -362,6 +374,77 @@ textarea {
   color: var(--teal);
   border: 1px solid var(--teal-light);
   vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* Hamburger — hidden on desktop */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* Mobile — MUST come after all navbar rules */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 14px 18px;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .navbar-nav {
+    display: none;
+  }
+
+  .navbar-nav.open {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: 57px;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px 20px;
+    gap: 2px;
+    z-index: 99;
+    box-shadow: var(--shadow-md);
+  }
+
+  .navbar-nav.open .nav-link {
+    width: 100%;
+    text-align: left;
+    padding: 11px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    border-radius: 0;
+  }
+
+  .navbar-nav.open .nav-link:last-of-type {
+    border-bottom: none;
+  }
+
+  .navbar-nav.open .theme-toggle {
+    width: 100%;
+    padding: 11px 4px;
+    margin-right: 0;
+    border-radius: 0;
+    border: none;
+    background: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .navbar-nav.open .streak-badge {
+    margin: 8px 0 4px;
+  }
 }
 
 /* ── Streak Badge ────────────────────────────────────────────── */
@@ -502,10 +585,8 @@ textarea {
 
 @media (max-width: 700px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
-  .navbar { padding: 14px 18px; }
   .container { padding: 0 16px; }
   .card { padding: 20px; }
-  .theme-toggle { display: none; }
 }
 
 /* ── Auth page ───────────────────────────────────────────────── */
