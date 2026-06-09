@@ -10,6 +10,7 @@ import WriteEntry from './pages/WriteEntry';
 import MoodResult from './pages/MoodResult';
 import Dashboard  from './pages/Dashboard';
 import History    from './pages/History';
+import Journey    from './pages/Journey';
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -35,7 +36,9 @@ function AppRoutes() {
         <Route path="/history" element={
           <ProtectedRoute><History /></ProtectedRoute>
         } />
-
+        <Route path="/journey" element={
+          <ProtectedRoute><Journey /></ProtectedRoute>
+        } />
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

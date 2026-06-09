@@ -228,6 +228,82 @@ function detectPatterns(dailyMoods) {
   return insights.slice(0, 3);
 }
 
+// ── GET /api/entries/journey ──────────────────────────────────────
+router.get('/journey', async (req, res, next) => {
+  try {
+    const monthlyTrend = await Entry.aggregate([
+      {
+        $match: {
+          user: req.user._id,
+          dominantEmotion: { $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            month: {
+              $substr: ['$entryDate', 0, 7]
+            },
+            emotion: '$dominantEmotion'
+          },
+          count: { $sum: 1 },
+          avgScore: { $avg: '$dominantScore' }
+        }
+      },
+      {
+        $sort: {
+          '_id.month': 1
+        }
+      }
+    ]);
+
+    const formatted = {};
+    monthlyTrend.forEach(item => {
+      const month = item._id.month;
+
+      if (!formatted[month]) {
+        formatted[month] = {
+          month,
+          joy: 0,
+          sadness: 0,
+          anger: 0,
+          fear: 0,
+          surprise: 0,
+          disgust: 0,
+          neutral: 0,
+          avgScore: 0,
+          totalScore: 0,
+          scoreCount: 0
+        };
+      }
+
+      formatted[month][item._id.emotion] = item.count;
+
+      formatted[month].totalScore += item.avgScore || 0;
+      formatted[month].scoreCount += 1;
+    });
+
+    const result = Object.values(formatted).map(month => ({
+      month: month.month,
+      joy: month.joy,
+      sadness: month.sadness,
+      anger: month.anger,
+      fear: month.fear,
+      surprise: month.surprise,
+      disgust: month.disgust,
+      neutral: month.neutral,
+      avgScore:
+        month.scoreCount > 0
+          ? Number((month.totalScore / month.scoreCount).toFixed(2))
+          : 0
+    }));
+
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── GET /api/entries/:id ──────────────────────────────────────
 router.get('/:id', async (req, res, next) => {
   try {

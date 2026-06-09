@@ -35,5 +35,6 @@ export const getEntries    = (page = 1)  => api.get(`/entries?page=${page}&limit
 export const getEntry      = (id)        => api.get(`/entries/${id}`);
 export const deleteEntry   = (id)        => api.delete(`/entries/${id}`);
 export const getDashboard  = ()          => api.get('/entries/dashboard');
+export const getJourney    = ()          => api.get('/entries/journey');
 
 export default api;

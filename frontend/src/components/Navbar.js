@@ -13,6 +13,11 @@ export default function Navbar() {
     return localStorage.getItem('mb_theme') || 'light';
   });
 
+  // ── Month Tracker ──────────────────────────────────────────────
+  const [months, setMonths] = useState(() => {
+  return parseInt(localStorage.getItem('mb_months_tracked') || '0');
+});
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('mb_theme', theme);
@@ -50,9 +55,8 @@ export default function Navbar() {
             <button className={isActive('/')}      onClick={() => navigate('/')}>Write</button>
             <button className={isActive('/dashboard')} onClick={() => navigate('/dashboard')}>Dashboard</button>
             <button className={isActive('/history')}   onClick={() => navigate('/history')}>History</button>
-
+            <button className={isActive('/journey')} onClick={() => navigate('/journey')}>Journey {months < 2 && <span className="nav-new-badge">new</span>}</button>
             <StreakBadge streak={user.streak?.current || 0} />
-
             <button
               className="nav-link"
               onClick={logoutUser}
