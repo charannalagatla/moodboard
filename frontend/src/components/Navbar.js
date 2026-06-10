@@ -17,7 +17,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   // ── Months tracked (for NEW badge) ────────────────────────────
-  const [months, setMonths] = useState(() => {
+  const [months] = useState(() => {
     return parseInt(localStorage.getItem('mb_months_tracked') || '0');
   });
 
