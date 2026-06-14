@@ -111,6 +111,70 @@ Write a short personal response to this person.`,
   }
 }
 
+// ── Stop words ────────────────────────────────────────────────
+const STOP_WORDS = new Set([
+  'a','an','the','and','or','but','in','on','at','to','for','of','with',
+  'by','from','up','about','into','through','during','is','was','are','were',
+  'be','been','being','have','has','had','do','does','did','will','would',
+  'could','should','may','might','shall','can','need','dare','ought','used',
+  'i','me','my','myself','we','our','you','your','he','she','it','they',
+  'them','this','that','these','those','what','which','who','whom','whose',
+  'when','where','why','how','there','here','just','so','if','then','than',
+  'too','very','not','no','nor','as','at','each','few','more','most','other',
+  'some','such','also','back','even','still','well','way','get','got','like',
+  'know','think','going','went','come','came','said','say','make','made',
+  'really','felt','feel','feeling','today','day','time','just','never','always'
+]);
+
+const NEGATIVE_EMOTIONS = new Set(['anger', 'sadness', 'fear', 'disgust']);
+
+async function updateTriggers(userId, emotion, text) {
+  if (!NEGATIVE_EMOTIONS.has(emotion)) return;
+
+  // Extract words, lowercase, remove punctuation, filter stop words, min 3 chars
+  const words = text
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !STOP_WORDS.has(w));
+
+  if (words.length === 0) return;
+
+  const Trigger = require('../models/Trigger');
+
+  // Build update — increment count for each word in the correct emotion bucket
+  const existing = await Trigger.findOne({ user: userId });
+
+  if (!existing) {
+    // First trigger doc for this user
+    const wordMap = {};
+    words.forEach(w => { wordMap[w] = (wordMap[w] || 0) + 1; });
+    const triggerWords = Object.entries(wordMap).map(([word, count]) => ({ word, count }));
+
+    await Trigger.create({
+      user: userId,
+      triggers: { [emotion]: triggerWords }
+    });
+    return;
+  }
+
+  // Update existing — merge counts
+  const bucket = existing.triggers[emotion] || [];
+  words.forEach(word => {
+    const entry = bucket.find(e => e.word === word);
+    if (entry) entry.count += 1;
+    else bucket.push({ word, count: 1 });
+  });
+
+  // Sort by count descending, keep top 20
+  existing.triggers[emotion] = bucket
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20);
+
+  existing.updatedAt = new Date();
+  await existing.save();
+}
+
 // ── POST /api/entries ─────────────────────────────────────────
 router.post('/',
   [
@@ -138,7 +202,8 @@ router.post('/',
       }
 
       const entry = await Entry.create({ user: req.user._id, text, moodTag, dominantEmotion, dominantScore, emotions, insight, entryDate: today });
-
+      // Trigger detection
+      await updateTriggers(req.user._id, dominantEmotion, text);
       const user = await User.findById(req.user._id);
       user.updateStreak();
       await user.save();
