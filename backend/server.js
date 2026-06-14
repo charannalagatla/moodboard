@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth');
 const entryRoutes = require('./routes/entries');
+const triggerRoutes = require('./routes/triggers');
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/auth', authLimiter);
 // ── ROUTES ────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/entries', entryRoutes);
+app.use('/api/triggers', triggerRoutes);
 
 // ── HEALTH CHECK ──────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
