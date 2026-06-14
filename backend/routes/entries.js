@@ -123,7 +123,8 @@ const STOP_WORDS = new Set([
   'too','very','not','no','nor','as','at','each','few','more','most','other',
   'some','such','also','back','even','still','well','way','get','got','like',
   'know','think','going','went','come','came','said','say','make','made',
-  'really','felt','feel','feeling','today','day','time','just','never','always'
+  'really','felt','feel','feeling','today','day','time','just','never','always',
+  'out', 'done'
 ]);
 
 const NEGATIVE_EMOTIONS = new Set(['anger', 'sadness', 'fear', 'disgust']);
