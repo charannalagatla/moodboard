@@ -124,7 +124,30 @@ const STOP_WORDS = new Set([
   'some','such','also','back','even','still','well','way','get','got','like',
   'know','think','going','went','come','came','said','say','make','made',
   'really','felt','feel','feeling','today','day','time','just','never','always',
-  'out', 'done'
+  'out', 'done',
+
+  // Quantifiers / indefinite pronouns
+  'every','everyone','everybody','everything','anybody','anyone','anything',
+  'nobody','none','nothing','somebody','someone','something','all','any',
+  'both','either','neither','several','enough',
+
+  // Vague size/degree descriptors
+  'small','big','large','little','lot','lots','bit','much','many','less','least',
+  'whole','entire',
+
+  // Generic intensifiers
+  'pretty','quite','rather','somewhat','kind','sort','actually','basically',
+  'literally','totally','completely','definitely','probably','maybe',
+
+  // Vague time/frequency words
+  'tomorrow','yesterday','now','soon','later','again','already','yet',
+  'sometimes','usually','often','rarely','once','week','month','year',
+  'morning','night',
+
+  // Generic verbs of being/happening
+  'happened','happen','happens','seem','seems','seemed','look','looks',
+  'looked','want','wanted','wants','tried','try','trying','keep','keeps',
+  'kept','put','take','took','taken','give','gave','given',
 ]);
 
 const NEGATIVE_EMOTIONS = new Set(['anger', 'sadness', 'fear', 'disgust']);
