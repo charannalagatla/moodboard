@@ -39,7 +39,7 @@ function ScoreTooltip({ active, payload, label }) {
       fontSize: 12,
     }}>
       <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
-      <div style={{ color: 'var(--indigo-light)', fontWeight: 600 }}>
+      <div style={{ color: 'var(--accent)', fontWeight: 600 }}>
         Score: {(payload[0].value * 100).toFixed(0)}%
       </div>
       <div style={{ color: 'var(--text-faint)', marginTop: 2 }}>
@@ -93,7 +93,7 @@ export default function Dashboard() {
     return (
       <div className="page" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ width: 32, height: 32, color: 'var(--indigo-light)', margin: '0 auto 12px' }} />
+          <div className="spinner" style={{ width: 32, height: 32, color: 'var(--accent)', margin: '0 auto 12px' }} />
           <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading your dashboard…</p>
         </div>
       </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
           <>
             {/* Stats row */}
             <div className="grid-3 fade-up fade-up-1" style={{ marginBottom: 24 }}>
-              <StatCard value={totalEntries} label="Total entries" color="var(--indigo-light)" icon="📝" />
+              <StatCard value={totalEntries} label="Total entries" color="var(--accent)" icon="📝" />
               <StatCard value={daysTracked} label="Days tracked" color="var(--teal)" icon="📅" />
               <StatCard
                 value={topEmotion ? `${EMOTION_EMOJI[topEmotion._id]} ${topEmotion._id}` : '—'}
@@ -214,9 +214,9 @@ export default function Dashboard() {
                       <Line
                         type="monotone"
                         dataKey="avgScore"
-                        stroke="var(--indigo-light)"
+                        stroke="var(--accent)"
                         strokeWidth={2}
-                        dot={{ fill: 'var(--indigo-light)', r: 4 }}
+                        dot={{ fill: 'var(--accent)', r: 4 }}
                         activeDot={{ r: 6 }}
                       />
                     </LineChart>
