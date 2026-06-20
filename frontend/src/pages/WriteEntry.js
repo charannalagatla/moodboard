@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createEntry } from '../api';
 import { useAuth } from '../context/AuthContext';
 import StreakBadge from '../components/StreakBadge';
+import TriggerPanel from '../components/TriggerPanel';
 
 const MOOD_TAGS = ['happy', 'sad', 'anxious', 'angry', 'calm', 'excited', 'neutral'];
 
@@ -59,9 +60,12 @@ export default function WriteEntry() {
           <StreakBadge streak={user?.streak?.current || 0} showLabel />
         </div>
 
-        {/* Entry form */}
-        <div className="card fade-up fade-up-1">
-          <form onSubmit={onSubmit}>
+        {/* Triggers + Entry form */}
+        <div className="trigger-entry-grid">
+          <TriggerPanel />
+
+          <div className="card fade-up fade-up-1">
+            <form onSubmit={onSubmit}>
             {error && (
               <div style={{
                 background: 'rgba(240,119,119,0.1)',
@@ -136,6 +140,7 @@ export default function WriteEntry() {
             </div>
           </form>
         </div>
+      </div>
 
         {/* Stats row */}
         <div className="grid-3 fade-up fade-up-2" style={{ marginTop: 24 }}>

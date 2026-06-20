@@ -582,9 +582,11 @@ textarea {
 /* ── Grid layouts ────────────────────────────────────────────── */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.trigger-entry-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 20px; }
 
 @media (max-width: 700px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .trigger-entry-grid { grid-template-columns: 1fr; }
   .container { padding: 0 16px; }
   .card { padding: 20px; }
 }
