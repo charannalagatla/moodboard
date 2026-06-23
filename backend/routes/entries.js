@@ -291,22 +291,49 @@ function detectPatterns(dailyMoods) {
   const insights = [];
   const dow = {};
 
-  dailyMoods.forEach(({ _id, topEmotion }) => {
+  dailyMoods.forEach(({ _id, topEmotion, count }) => {
     const day = new Date(_id).toLocaleDateString('en-US', { weekday: 'long' });
     if (!dow[day]) dow[day] = {};
-    dow[day][topEmotion] = (dow[day][topEmotion] || 0) + 1;
+    if (!dow[day][topEmotion]) dow[day][topEmotion] = { dayCount: 0, entryCount: 0 };
+    dow[day][topEmotion].dayCount += 1;
+    dow[day][topEmotion].entryCount += (count || 1);
   });
 
+  const dayTopEmotion = {};
   for (const [day, emotions] of Object.entries(dow)) {
-    const top = Object.entries(emotions).sort((a, b) => b[1] - a[1])[0];
-    if (top && top[1] >= 2) {
-      if (['sadness', 'anger', 'fear'].includes(top[0]))
-        insights.push({ type: 'pattern', icon: '📊', text: `You tend to feel ${top[0]} on ${day}s. Consider what might be causing this.` });
-      else if (['joy', 'surprise'].includes(top[0]))
-        insights.push({ type: 'positive', icon: '✨', text: `${day}s seem to be your happiest days! Keep doing what's working.` });
-    }
+    const sorted = Object.entries(emotions).sort((a, b) => b[1].dayCount - a[1].dayCount);
+    const [emotion, stats] = sorted[0];
+    dayTopEmotion[day] = { emotion, dayCount: stats.dayCount, entryCount: stats.entryCount };
   }
 
+  // Best positive day(s)
+  const positiveDays = Object.entries(dayTopEmotion)
+    .filter(([, v]) => ['joy', 'surprise'].includes(v.emotion));
+
+  if (positiveDays.length > 0) {
+    const maxDayCount = Math.max(...positiveDays.map(([, v]) => v.dayCount));
+    const topByDayCount = positiveDays.filter(([, v]) => v.dayCount === maxDayCount);
+    const maxEntryCount = Math.max(...topByDayCount.map(([, v]) => v.entryCount));
+    const winners = topByDayCount.filter(([, v]) => v.entryCount === maxEntryCount);
+    const joined = winners.map(([d]) => `${d}s`).join(', ').replace(/,([^,]*)$/, ' and$1');
+    insights.push({ type: 'positive', icon: '✨', text: `${joined} seem to be your happiest days! Keep doing what's working.` });
+  }
+
+  // Toughest negative day(s)
+  const negativeDays = Object.entries(dayTopEmotion)
+    .filter(([, v]) => ['sadness', 'anger', 'fear'].includes(v.emotion));
+
+  if (negativeDays.length > 0) {
+    const maxDayCount = Math.max(...negativeDays.map(([, v]) => v.dayCount));
+    const topByDayCount = negativeDays.filter(([, v]) => v.dayCount === maxDayCount);
+    const maxEntryCount = Math.max(...topByDayCount.map(([, v]) => v.entryCount));
+    const winners = topByDayCount.filter(([, v]) => v.entryCount === maxEntryCount);
+    const emotion = winners[0][1].emotion;
+    const joined = winners.map(([d]) => `${d}s`).join(', ').replace(/,([^,]*)$/, ' and$1');
+    insights.push({ type: 'pattern', icon: '📊', text: `You tend to feel ${emotion} on ${joined}. Consider what might be causing this.` });
+  }
+
+  // Recent tough streak — unchanged
   let neg = 0;
   for (const { topEmotion } of dailyMoods.slice(-5)) {
     if (['sadness', 'anger', 'fear', 'disgust'].includes(topEmotion)) neg++;

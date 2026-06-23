@@ -58630,7 +58630,3 @@
 ./README.md
 ./render.yaml
 ./structure.txt
-./{backend
-./{backend/{middleware,models,routes},ml-service,frontend
-./{backend/{middleware,models,routes},ml-service,frontend/src
-./{backend/{middleware,models,routes},ml-service,frontend/src/{components,pages,hooks,context}}
