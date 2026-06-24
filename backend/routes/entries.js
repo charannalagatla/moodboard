@@ -37,7 +37,7 @@ Respond ONLY with a JSON object, no explanation, no markdown:
     { "label": "neutral",  "score": <0.0 to 1.0> }
   ]
 }
-All scores must sum to 1.0. dominant must be the highest scoring emotion.`
+All scores must sum to 1.0. dominant.label must be exactly one of: joy, sadness, anger, fear, surprise, disgust, neutral — the one with the highest score.`
           }
         ]
       },
@@ -218,9 +218,10 @@ router.post('/',
       let dominantEmotion = null, dominantScore = null, emotions = [], insight = null;
 
       if (mlResult) {
-        dominantEmotion = mlResult.dominant.label;
-        dominantScore   = mlResult.dominant.score;
-        emotions        = mlResult.emotions;
+        emotions = mlResult.emotions;
+        const top = emotions.reduce((a, b) => a.score > b.score ? a : b);
+        dominantEmotion = top.label;
+        dominantScore   = top.score;
         // Run insight generation in parallel with nothing — or await directly
         insight = await generateInsight(text, dominantEmotion);
       }
