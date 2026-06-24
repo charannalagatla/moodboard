@@ -20,24 +20,23 @@ async function analyseEmotion(text) {
         messages: [
           {
             role: 'user',
-            content: `Read this journal entry and tell me how the person is feeling emotionally.
+            content: `You are an emotion classifier. Analyze this journal entry and score exactly these 7 emotions.
 
-Journal entry: "${text.substring(0, 1000)}"
+            Journal entry: "${text.substring(0, 1000)}"
 
-Respond ONLY with a JSON object, no explanation, no markdown:
-{
-  "dominant": { "label": "<emotion>", "score": <0.0 to 1.0> },
-  "emotions": [
-    { "label": "joy",      "score": <0.0 to 1.0> },
-    { "label": "sadness",  "score": <0.0 to 1.0> },
-    { "label": "anger",    "score": <0.0 to 1.0> },
-    { "label": "fear",     "score": <0.0 to 1.0> },
-    { "label": "surprise", "score": <0.0 to 1.0> },
-    { "label": "disgust",  "score": <0.0 to 1.0> },
-    { "label": "neutral",  "score": <0.0 to 1.0> }
-  ]
-}
-All scores must sum to 1.0. dominant.label must be exactly one of: joy, sadness, anger, fear, surprise, disgust, neutral — the one with the highest score.`
+            Respond ONLY with this exact JSON structure. Do not change the labels. Only fill in the score values:
+            {
+              "emotions": [
+                { "label": "joy",      "score": <0.0 to 1.0> },
+                { "label": "sadness",  "score": <0.0 to 1.0> },
+                { "label": "anger",    "score": <0.0 to 1.0> },
+                { "label": "fear",     "score": <0.0 to 1.0> },
+                { "label": "surprise", "score": <0.0 to 1.0> },
+                { "label": "disgust",  "score": <0.0 to 1.0> },
+                { "label": "neutral",  "score": <0.0 to 1.0> }
+              ]
+            }
+            Rules: Return exactly these 7 labels, no others. All scores must sum to 1.0.`
           }
         ]
       },
