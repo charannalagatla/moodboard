@@ -30,6 +30,7 @@ const entrySchema = new mongoose.Schema(
     // Mood results from Groq API
     dominantEmotion: { type: String, default: null },
     dominantScore: { type: Number, default: null },
+    detectedEmotion: { type: String, default: null },
     emotions: [emotionSchema], // all 7 emotion scores
     // Insight generated for this entry
     insight: { type: String, default: null },

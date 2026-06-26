@@ -20,12 +20,13 @@ async function analyseEmotion(text) {
         messages: [
           {
             role: 'user',
-            content: `You are an emotion classifier. Analyze this journal entry and score exactly these 7 emotions.
+            content: `You are an emotion classifier. Analyze this journal entry.
 
             Journal entry: "${text.substring(0, 1000)}"
 
-            Respond ONLY with this exact JSON structure. Do not change the labels. Only fill in the score values:
+            Respond ONLY with this exact JSON, no explanation, no markdown:
             {
+              "detectedEmotion": "<the most precise emotion word you detected, e.g. guilt, frustration, embarrassment>",
               "emotions": [
                 { "label": "joy",      "score": <0.0 to 1.0> },
                 { "label": "sadness",  "score": <0.0 to 1.0> },
@@ -36,7 +37,7 @@ async function analyseEmotion(text) {
                 { "label": "neutral",  "score": <0.0 to 1.0> }
               ]
             }
-            Rules: Return exactly these 7 labels, no others. All scores must sum to 1.0.`
+            Rules: emotions array must use exactly these 7 labels, only fill score values, higher score means stronger presence of that emotion, all scores must sum to 1.0.`
           }
         ]
       },
@@ -214,18 +215,20 @@ router.post('/',
 
       const mlResult = await analyseEmotion(text);
 
-      let dominantEmotion = null, dominantScore = null, emotions = [], insight = null;
+      let dominantEmotion = null, dominantScore = null, detectedEmotion = null, emotions = [], insight = null;
 
       if (mlResult) {
         emotions = mlResult.emotions;
+        detectedEmotion = mlResult.detectedEmotion || null;
+        const allEqual = emotions.every(e => e.score === emotions[0].score);
         const top = emotions.reduce((a, b) => a.score > b.score ? a : b);
-        dominantEmotion = top.label;
+        dominantEmotion = allEqual ? 'neutral' : top.label;
         dominantScore   = top.score;
         // Run insight generation in parallel with nothing — or await directly
         insight = await generateInsight(text, dominantEmotion);
       }
 
-      const entry = await Entry.create({ user: req.user._id, text, moodTag, dominantEmotion, dominantScore, emotions, insight, entryDate: today });
+      const entry = await Entry.create({ user: req.user._id, text, moodTag, dominantEmotion, dominantScore, detectedEmotion, emotions, insight, entryDate: today });
       // Trigger detection
       await updateTriggers(req.user._id, dominantEmotion, text);
       const user = await User.findById(req.user._id);
