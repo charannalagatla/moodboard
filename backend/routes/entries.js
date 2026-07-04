@@ -215,7 +215,7 @@ router.post('/',
 
       const mlResult = await analyseEmotion(text);
 
-      let dominantEmotion = null, dominantScore = null, detectedEmotion = null, emotions = [], insight = null;
+      let dominantEmotion = null, dominantScore = null, detectedEmotion = null, emotions = [];
 
       if (mlResult) {
         emotions = mlResult.emotions;
@@ -224,18 +224,30 @@ router.post('/',
         const top = emotions.reduce((a, b) => a.score > b.score ? a : b);
         dominantEmotion = allEqual ? 'neutral' : top.label;
         dominantScore   = top.score;
-        // Run insight generation in parallel with nothing — or await directly
-        insight = await generateInsight(text, dominantEmotion);
       }
 
-      const entry = await Entry.create({ user: req.user._id, text, moodTag, dominantEmotion, dominantScore, detectedEmotion, emotions, insight, entryDate: today });
-      // Trigger detection
+      const entry = await Entry.create({
+        user: req.user._id, text, moodTag,
+        dominantEmotion, dominantScore, detectedEmotion,
+        emotions, insight: null, entryDate: today
+      });
+
       await updateTriggers(req.user._id, dominantEmotion, text);
       const user = await User.findById(req.user._id);
       user.updateStreak();
       await user.save();
 
       res.status(201).json({ entry, streak: user.streak });
+
+      // Fire insight generation after response is sent — no await
+      if (mlResult) {
+        generateInsight(text, dominantEmotion)
+          .then(insight => {
+            if (insight) Entry.findByIdAndUpdate(entry._id, { insight }).exec();
+          })
+          .catch(err => console.error('Background insight error:', err));
+      }
+
     } catch (err) { next(err); }
   }
 );
